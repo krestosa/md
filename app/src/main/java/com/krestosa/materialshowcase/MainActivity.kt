@@ -74,6 +74,7 @@ internal data class CatalogSection(
     val description: String,
     val content: @Composable () -> Unit,
     val documentationUrl: String = documentationUrlFor(title),
+    val animationUrl: String = animationUrlFor(title),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -157,7 +158,7 @@ fun MaterialShowcaseApp() {
                 onDismissRequest = { showDialog = false },
                 icon = { Icon(Icons.Default.Info, null) },
                 title = { Text("About this catalog") },
-                text = { Text("Material components, prerelease APIs, motion, adaptive layouts, theming, state matrices and accessibility examples. Every demo links to its official documentation.") },
+                text = { Text("Material components, prerelease APIs, motion, adaptive layouts, theming, state matrices and accessibility examples. Every demo links to its official documentation and animation source/reference.") },
                 confirmButton = { TextButton(onClick = { showDialog = false }) { Text("OK") } },
             )
         }
@@ -212,12 +213,17 @@ internal fun SectionHeader(section: CatalogSection) {
             Text(section.description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Box {
-            IconButton(onClick = { expanded = true }) { Icon(Icons.Default.MoreVert, contentDescription = "Documentation for ${section.title}") }
+            IconButton(onClick = { expanded = true }) { Icon(Icons.Default.MoreVert, contentDescription = "Links for ${section.title}") }
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 DropdownMenuItem(
-                    text = { Text("Open documentation") },
+                    text = { Text("Component documentation") },
                     leadingIcon = { Icon(Icons.Default.Info, null) },
                     onClick = { expanded = false; uriHandler.openUri(section.documentationUrl) },
+                )
+                DropdownMenuItem(
+                    text = { Text("Animations / motion") },
+                    leadingIcon = { Icon(Icons.Default.Animation, null) },
+                    onClick = { expanded = false; uriHandler.openUri(section.animationUrl) },
                 )
             }
         }
