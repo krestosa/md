@@ -5,8 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
@@ -52,6 +55,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -69,6 +73,7 @@ internal data class CatalogSection(
     val title: String,
     val description: String,
     val content: @Composable () -> Unit,
+    val documentationUrl: String = documentationUrlFor(title),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,12 +90,14 @@ fun MaterialShowcaseApp() {
     val title = when (selectedDestination) {
         0 -> "Material Components"
         1 -> "Material Labs"
-        else -> "Material Motion"
+        2 -> "Material Motion"
+        else -> "Material System"
     }
     val subtitle = when (selectedDestination) {
         0 -> "Stable component catalog"
         1 -> "Experimental · Alpha · Beta"
-        else -> "Interactive motion examples"
+        2 -> "Interactive motion examples"
+        else -> "Adaptive · Theme · States · A11y"
     }
 
     ShowcaseTheme {
@@ -104,40 +111,23 @@ fun MaterialShowcaseApp() {
                         }
                     },
                     navigationIcon = {
-                        IconButton(onClick = { scope.launch { snackbarHostState.showSnackbar("Navigation") } }) {
+                        IconButton(onClick = { scope.launch { snackbarHostState.showSnackbar("Material showcase") } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
                     },
                     actions = {
-                        BadgedBox(
-                            badge = {
-                                Badge {
-                                    Text(
-                                        when (selectedDestination) {
-                                            0 -> "S"
-                                            1 -> "α"
-                                            else -> "M"
-                                        },
-                                    )
-                                }
-                            },
-                        ) {
+                        BadgedBox(badge = { Badge { Text(listOf("S", "α", "M", "D")[selectedDestination]) } }) {
                             IconButton(onClick = { scope.launch { snackbarHostState.showSnackbar("Catalog status") } }) {
                                 Icon(Icons.Default.Notifications, contentDescription = "Status")
                             }
                         }
-                        androidx.compose.foundation.layout.Box {
-                            IconButton(onClick = { menuExpanded = true }) {
-                                Icon(Icons.Default.MoreVert, contentDescription = "More")
-                            }
+                        Box {
+                            IconButton(onClick = { menuExpanded = true }) { Icon(Icons.Default.MoreVert, contentDescription = "More") }
                             DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                                 DropdownMenuItem(
                                     text = { Text("About") },
                                     leadingIcon = { Icon(Icons.Default.Info, null) },
-                                    onClick = {
-                                        menuExpanded = false
-                                        showDialog = true
-                                    },
+                                    onClick = { menuExpanded = false; showDialog = true },
                                 )
                             }
                         }
@@ -147,39 +137,18 @@ fun MaterialShowcaseApp() {
             snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = {
                 NavigationBar {
-                    NavigationBarItem(
-                        selected = selectedDestination == 0,
-                        onClick = { selectedDestination = 0 },
-                        icon = { Icon(Icons.Default.ViewModule, contentDescription = "Stable") },
-                        label = { Text("Stable") },
-                    )
-                    NavigationBarItem(
-                        selected = selectedDestination == 1,
-                        onClick = { selectedDestination = 1 },
-                        icon = { Icon(Icons.Default.Science, contentDescription = "Labs") },
-                        label = { Text("Labs") },
-                    )
-                    NavigationBarItem(
-                        selected = selectedDestination == 2,
-                        onClick = { selectedDestination = 2 },
-                        icon = { Icon(Icons.Default.Animation, contentDescription = "Motion") },
-                        label = { Text("Motion") },
-                    )
+                    NavigationBarItem(selected = selectedDestination == 0, onClick = { selectedDestination = 0 }, icon = { Icon(Icons.Default.ViewModule, "Stable") }, label = { Text("Stable") })
+                    NavigationBarItem(selected = selectedDestination == 1, onClick = { selectedDestination = 1 }, icon = { Icon(Icons.Default.Science, "Labs") }, label = { Text("Labs") })
+                    NavigationBarItem(selected = selectedDestination == 2, onClick = { selectedDestination = 2 }, icon = { Icon(Icons.Default.Animation, "Motion") }, label = { Text("Motion") })
+                    NavigationBarItem(selected = selectedDestination == 3, onClick = { selectedDestination = 3 }, icon = { Icon(Icons.Default.SettingsSuggest, "System") }, label = { Text("System") })
                 }
             },
         ) { innerPadding ->
             when (selectedDestination) {
-                0 -> CatalogContent(
-                    modifier = Modifier.padding(innerPadding),
-                    onDialog = { showDialog = true },
-                    onSheet = { showSheet = true },
-                    onSnackbar = { message -> scope.launch { snackbarHostState.showSnackbar(message) } },
-                )
-                1 -> ExperimentalCatalogContent(
-                    modifier = Modifier.padding(innerPadding),
-                    onSnackbar = { message -> scope.launch { snackbarHostState.showSnackbar(message) } },
-                )
-                else -> MotionCatalogContent(modifier = Modifier.padding(innerPadding))
+                0 -> CatalogContent(Modifier.padding(innerPadding), { showDialog = true }, { showSheet = true }) { scope.launch { snackbarHostState.showSnackbar(it) } }
+                1 -> ExperimentalCatalogContent(Modifier.padding(innerPadding)) { scope.launch { snackbarHostState.showSnackbar(it) } }
+                2 -> MotionCatalogContent(Modifier.padding(innerPadding))
+                else -> SystemShowcaseContent(Modifier.padding(innerPadding))
             }
         }
 
@@ -188,25 +157,17 @@ fun MaterialShowcaseApp() {
                 onDismissRequest = { showDialog = false },
                 icon = { Icon(Icons.Default.Info, null) },
                 title = { Text("About this catalog") },
-                text = { Text("Stable components, prerelease APIs and motion examples are separated into independent surfaces. Colors and light/dark appearance follow the device system theme.") },
+                text = { Text("Material components, prerelease APIs, motion, adaptive layouts, theming, state matrices and accessibility examples. Every demo links to its official documentation.") },
                 confirmButton = { TextButton(onClick = { showDialog = false }) { Text("OK") } },
             )
         }
 
         if (showSheet) {
             ModalBottomSheet(onDismissRequest = { showSheet = false }, sheetState = sheetState) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Modal bottom sheet", style = MaterialTheme.typography.headlineSmall)
                     Text("A modal surface for secondary content and focused actions.")
-                    Button(
-                        onClick = {
-                            scope.launch { sheetState.hide() }.invokeOnCompletion { showSheet = false }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Close") }
+                    Button(onClick = { scope.launch { sheetState.hide() }.invokeOnCompletion { showSheet = false } }, modifier = Modifier.fillMaxWidth()) { Text("Close") }
                     Spacer(Modifier.height(24.dp))
                 }
             }
@@ -215,29 +176,17 @@ fun MaterialShowcaseApp() {
 }
 
 @Composable
-private fun CatalogContent(
-    modifier: Modifier = Modifier,
-    onDialog: () -> Unit,
-    onSheet: () -> Unit,
-    onSnackbar: (String) -> Unit,
-) {
-    val sections = coreCatalogSections(onDialog, onSheet, onSnackbar) + extendedCatalogSections(onSnackbar)
-
+private fun CatalogContent(modifier: Modifier, onDialog: () -> Unit, onSheet: () -> Unit, onSnackbar: (String) -> Unit) {
     CatalogSectionList(
         modifier = modifier,
         title = "Stable components",
-        description = "Production-oriented Material component catalog. The app follows system light/dark mode and dynamic device colors when Android supports them.",
-        sections = sections,
+        description = "Production-oriented Material component catalog. Appearance follows system light/dark mode and dynamic device colors where supported.",
+        sections = coreCatalogSections(onDialog, onSheet, onSnackbar) + extendedCatalogSections(onSnackbar),
     )
 }
 
 @Composable
-internal fun CatalogSectionList(
-    modifier: Modifier = Modifier,
-    title: String,
-    description: String,
-    sections: List<CatalogSection>,
-) {
+internal fun CatalogSectionList(modifier: Modifier = Modifier, title: String, description: String, sections: List<CatalogSection>) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
@@ -248,10 +197,30 @@ internal fun CatalogSectionList(
             Spacer(Modifier.height(8.dp))
             Text(description, style = MaterialTheme.typography.bodyLarge)
         }
-        items(sections, key = { it.title }) { section ->
-            ComponentSection(section)
-        }
+        items(sections, key = { it.title }) { ComponentSection(it) }
         item { Spacer(Modifier.height(24.dp)) }
+    }
+}
+
+@Composable
+internal fun SectionHeader(section: CatalogSection) {
+    val uriHandler = LocalUriHandler.current
+    var expanded by remember { mutableStateOf(false) }
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.SpaceBetween) {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(section.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text(section.description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Box {
+            IconButton(onClick = { expanded = true }) { Icon(Icons.Default.MoreVert, contentDescription = "Documentation for ${section.title}") }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                DropdownMenuItem(
+                    text = { Text("Open documentation") },
+                    leadingIcon = { Icon(Icons.Default.Info, null) },
+                    onClick = { expanded = false; uriHandler.openUri(section.documentationUrl) },
+                )
+            }
+        }
     }
 }
 
@@ -259,14 +228,7 @@ internal fun CatalogSectionList(
 private fun ComponentSection(section: CatalogSection) {
     OutlinedCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(section.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                Text(
-                    section.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            SectionHeader(section)
             section.content()
         }
     }
@@ -274,6 +236,4 @@ private fun ComponentSection(section: CatalogSection) {
 
 @Preview(showBackground = true, widthDp = 412, heightDp = 915)
 @Composable
-private fun MaterialShowcasePreview() {
-    MaterialShowcaseApp()
-}
+private fun MaterialShowcasePreview() { MaterialShowcaseApp() }
