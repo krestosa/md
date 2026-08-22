@@ -1,15 +1,15 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@file:OptIn(
+    androidx.compose.material3.ExperimentalMaterial3Api::class,
+    androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class,
+)
 
 package com.krestosa.materialshowcase
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -28,14 +28,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeExtendedFloatingActionButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumExtendedFloatingActionButton
 import androidx.compose.material3.MediumFloatingActionButton
 import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.SecureTextField
 import androidx.compose.material3.SegmentedListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimePicker
@@ -44,8 +43,8 @@ import androidx.compose.material3.VerticalSlider
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -139,24 +138,20 @@ private fun VerticalSliderDemo() {
 @Composable
 private fun SecureTextFieldDemo() {
     val state = rememberTextFieldState()
-    SecureTextField(
-        state = state,
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text("Password") },
-    )
+    SecureTextField(state = state, modifier = Modifier.fillMaxWidth(), label = { Text("Password") })
 }
 
 @Composable
 private fun SegmentedListDemo() {
     val labels = listOf("First item", "Middle item", "Last item")
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
         labels.forEachIndexed { index, label ->
             SegmentedListItem(
                 shapes = ListItemDefaults.segmentedShapes(index = index, count = labels.size),
-                headlineContent = { Text(label) },
                 supportingContent = { Text("Connected segmented surface") },
                 leadingContent = { Icon(Icons.Default.Settings, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
+                content = { Text(label) },
             )
         }
     }
@@ -195,8 +190,6 @@ private fun TimePickerDialogDemo() {
             confirmButton = { androidx.compose.material3.TextButton(onClick = { open = false }) { Text("OK") } },
             dismissButton = { androidx.compose.material3.TextButton(onClick = { open = false }) { Text("Cancel") } },
             title = { Text("Select time") },
-        ) {
-            TimePicker(state = state)
-        }
+        ) { TimePicker(state = state) }
     }
 }
