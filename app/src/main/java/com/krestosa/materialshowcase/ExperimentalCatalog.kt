@@ -77,16 +77,8 @@ internal fun ExperimentalCatalogContent(
             }
             itemsIndexed(sections, key = { _, section -> section.title }) { index, section ->
                 OutlinedCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Text(section.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                        Text(
-                            section.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        SectionHeader(section)
                         Button(onClick = { selectedIndex = index }) { Text("Open demo") }
                     }
                 }
@@ -106,11 +98,7 @@ internal fun ExperimentalCatalogContent(
                     Text(" Back to Labs")
                 }
             }
-            item {
-                Text(section.title, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(8.dp))
-                Text(section.description, style = MaterialTheme.typography.bodyLarge)
-            }
+            item { SectionHeader(section) }
             item {
                 ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) { section.content() }
@@ -122,18 +110,10 @@ internal fun ExperimentalCatalogContent(
 }
 
 private fun experimentalSections(onSnackbar: (String) -> Unit): List<CatalogSection> = listOf(
-    CatalogSection("Channel status", "Current library channels used to separate production and prerelease APIs.") {
-        ChannelStatusDemo()
-    },
-    CatalogSection("Alpha toggle buttons", "New full-size toggle button family introduced in the Material 3 1.5 prerelease line.") {
-        AlphaToggleButtonsDemo()
-    },
-    CatalogSection("Alpha button group", "Overflow-aware grouped actions from the 1.5 prerelease API surface.") {
-        AlphaButtonGroupDemo(onSnackbar)
-    },
-    CatalogSection("Alpha short navigation bar", "Compact primary destination navigation introduced in the 1.5 prerelease line.") {
-        AlphaShortNavigationBarDemo()
-    },
+    CatalogSection("Channel status", "Current library channels used to separate production and prerelease APIs.") { ChannelStatusDemo() },
+    CatalogSection("Alpha toggle buttons", "New full-size toggle button family introduced in the Material 3 1.5 prerelease line.") { AlphaToggleButtonsDemo() },
+    CatalogSection("Alpha button group", "Overflow-aware grouped actions from the 1.5 prerelease API surface.") { AlphaButtonGroupDemo(onSnackbar) },
+    CatalogSection("Alpha short navigation bar", "Compact primary destination navigation introduced in the 1.5 prerelease line.") { AlphaShortNavigationBarDemo() },
 ) + moreLabsSections()
 
 @Composable
@@ -169,11 +149,7 @@ private fun AlphaToggleButtonsDemo() {
     var elevated by remember { mutableStateOf(false) }
     var tonal by remember { mutableStateOf(false) }
     var outlined by remember { mutableStateOf(false) }
-
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         ToggleButton(checked = filled, onCheckedChange = { filled = it }) { Text("Filled") }
         ElevatedToggleButton(checked = elevated, onCheckedChange = { elevated = it }) { Text("Elevated") }
         FilledTonalToggleButton(checked = tonal, onCheckedChange = { tonal = it }) { Text("Tonal") }
@@ -198,12 +174,7 @@ private fun AlphaButtonGroupDemo(onSnackbar: (String) -> Unit) {
 @Composable
 private fun AlphaShortNavigationBarDemo() {
     var selected by remember { mutableIntStateOf(0) }
-    val items = listOf(
-        "Home" to Icons.Default.Home,
-        "Search" to Icons.Default.Search,
-        "Settings" to Icons.Default.Settings,
-    )
-
+    val items = listOf("Home" to Icons.Default.Home, "Search" to Icons.Default.Search, "Settings" to Icons.Default.Settings)
     ShortNavigationBar(modifier = Modifier.fillMaxWidth()) {
         items.forEachIndexed { index, item ->
             ShortNavigationBarItem(
