@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Animation
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
@@ -81,20 +82,25 @@ fun MaterialShowcaseApp() {
     var menuExpanded by remember { mutableStateOf(false) }
     var selectedDestination by remember { mutableIntStateOf(0) }
 
+    val title = when (selectedDestination) {
+        0 -> "Material Components"
+        1 -> "Material Labs"
+        else -> "Material Motion"
+    }
+    val subtitle = when (selectedDestination) {
+        0 -> "Stable component catalog"
+        1 -> "Experimental · Alpha · Beta"
+        else -> "Interactive motion examples"
+    }
+
     ShowcaseTheme {
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                if (selectedDestination == 0) "Material Components" else "Material Labs",
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                if (selectedDestination == 0) "Stable component catalog" else "Experimental · Alpha · Beta",
-                                style = MaterialTheme.typography.labelSmall,
-                            )
+                            Text(title, fontWeight = FontWeight.SemiBold)
+                            Text(subtitle, style = MaterialTheme.typography.labelSmall)
                         }
                     },
                     navigationIcon = {
@@ -103,7 +109,19 @@ fun MaterialShowcaseApp() {
                         }
                     },
                     actions = {
-                        BadgedBox(badge = { Badge { Text(if (selectedDestination == 0) "S" else "α") } }) {
+                        BadgedBox(
+                            badge = {
+                                Badge {
+                                    Text(
+                                        when (selectedDestination) {
+                                            0 -> "S"
+                                            1 -> "α"
+                                            else -> "M"
+                                        },
+                                    )
+                                }
+                            },
+                        ) {
                             IconButton(onClick = { scope.launch { snackbarHostState.showSnackbar("Catalog status") } }) {
                                 Icon(Icons.Default.Notifications, contentDescription = "Status")
                             }
@@ -141,21 +159,27 @@ fun MaterialShowcaseApp() {
                         icon = { Icon(Icons.Default.Science, contentDescription = "Labs") },
                         label = { Text("Labs") },
                     )
+                    NavigationBarItem(
+                        selected = selectedDestination == 2,
+                        onClick = { selectedDestination = 2 },
+                        icon = { Icon(Icons.Default.Animation, contentDescription = "Motion") },
+                        label = { Text("Motion") },
+                    )
                 }
             },
         ) { innerPadding ->
-            if (selectedDestination == 0) {
-                CatalogContent(
+            when (selectedDestination) {
+                0 -> CatalogContent(
                     modifier = Modifier.padding(innerPadding),
                     onDialog = { showDialog = true },
                     onSheet = { showSheet = true },
                     onSnackbar = { message -> scope.launch { snackbarHostState.showSnackbar(message) } },
                 )
-            } else {
-                ExperimentalCatalogContent(
+                1 -> ExperimentalCatalogContent(
                     modifier = Modifier.padding(innerPadding),
                     onSnackbar = { message -> scope.launch { snackbarHostState.showSnackbar(message) } },
                 )
+                else -> MotionCatalogContent(modifier = Modifier.padding(innerPadding))
             }
         }
 
@@ -164,7 +188,7 @@ fun MaterialShowcaseApp() {
                 onDismissRequest = { showDialog = false },
                 icon = { Icon(Icons.Default.Info, null) },
                 title = { Text("About this catalog") },
-                text = { Text("Stable components and prerelease APIs are separated into independent catalog surfaces. Colors and light/dark appearance follow the device system theme.") },
+                text = { Text("Stable components, prerelease APIs and motion examples are separated into independent surfaces. Colors and light/dark appearance follow the device system theme.") },
                 confirmButton = { TextButton(onClick = { showDialog = false }) { Text("OK") } },
             )
         }
