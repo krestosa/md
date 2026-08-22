@@ -2,16 +2,25 @@
 
 package com.krestosa.materialshowcase
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ElevatedCard
@@ -41,12 +50,75 @@ internal fun ExperimentalCatalogContent(
     modifier: Modifier = Modifier,
     onSnackbar: (String) -> Unit,
 ) {
-    CatalogSectionList(
-        modifier = modifier,
-        title = "Material Labs",
-        description = "Prerelease and experimental surface. This build uses Material 3 1.5.0-alpha26. Components here may change API, behavior or visuals before becoming stable.",
-        sections = experimentalSections(onSnackbar),
-    )
+    val sections = experimentalSections(onSnackbar)
+    var selectedIndex by remember { mutableIntStateOf(-1) }
+
+    BackHandler(enabled = selectedIndex >= 0) { selectedIndex = -1 }
+
+    if (selectedIndex < 0) {
+        LazyColumn(
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item {
+                Text("Material Labs", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Experimental and prerelease APIs are isolated. Opening Labs itself composes no alpha demo; each component runs only when selected.",
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Runtime: Material 3 1.5.0-alpha26",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+            }
+            itemsIndexed(sections, key = { _, section -> section.title }) { index, section ->
+                OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(section.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            section.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Button(onClick = { selectedIndex = index }) { Text("Open demo") }
+                    }
+                }
+            }
+            item { Spacer(Modifier.height(24.dp)) }
+        }
+    } else {
+        val section = sections[selectedIndex.coerceIn(sections.indices)]
+        LazyColumn(
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                Button(onClick = { selectedIndex = -1 }) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = null)
+                    Text(" Back to Labs")
+                }
+            }
+            item {
+                Text(section.title, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(8.dp))
+                Text(section.description, style = MaterialTheme.typography.bodyLarge)
+            }
+            item {
+                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) { section.content() }
+                }
+            }
+            item { Spacer(Modifier.height(24.dp)) }
+        }
+    }
 }
 
 private fun experimentalSections(onSnackbar: (String) -> Unit): List<CatalogSection> = listOf(
