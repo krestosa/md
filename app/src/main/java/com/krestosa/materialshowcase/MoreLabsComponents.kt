@@ -50,7 +50,7 @@ internal fun moreLabsSections(): List<CatalogSection> = listOf(
     CatalogSection("Pull to refresh", "Gesture-driven refresh container and Material refresh indicator.") { PullToRefreshDemo() },
     CatalogSection("Standard bottom sheet", "Persistent bottom-sheet scaffold with a visible peek state.") { StandardBottomSheetDemo() },
     CatalogSection("Carousel", "Material multi-browse carousel with adaptive item sizing and masking behavior.") { CarouselDemo() },
-)
+) + newLabsSections()
 
 @Composable
 private fun TooltipsDemo() {
