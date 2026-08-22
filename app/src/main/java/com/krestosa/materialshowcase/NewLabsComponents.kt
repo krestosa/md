@@ -46,7 +46,7 @@ internal fun newLabsSections(): List<CatalogSection> = listOf(
     CatalogSection("Floating toolbars", "Horizontal and vertical floating action toolbars from the expressive prerelease surface.") { FloatingToolbarsDemo() },
     CatalogSection("FAB menu", "Expandable floating action button menu with staggered menu items.") { FabMenuDemo() },
     CatalogSection("Wide navigation rail", "Wide-screen navigation rail using the new navigation item layout.") { WideNavigationRailDemo() },
-) + finalLabsSections()
+) + finalLabsSections() + latestLabsExtras()
 
 @Composable
 private fun SplitButtonDemo() {
