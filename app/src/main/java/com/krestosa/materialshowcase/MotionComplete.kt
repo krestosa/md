@@ -4,16 +4,16 @@ package com.krestosa.materialshowcase
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.animateEnterExit
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateColor
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
@@ -37,8 +37,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.using
-import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -46,7 +44,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -54,13 +51,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -68,7 +61,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -83,58 +75,53 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 internal fun completeMotionSections(): List<CatalogSection> = listOf(
-    CatalogSection("Material motion scheme", "The active theme motion scheme drives component animation defaults.") { MaterialMotionSchemeDemo() },
-    CatalogSection("Standard vs expressive", "Compare the two built-in Material motion schemes on the same spatial change.") { StandardExpressiveDemo() },
+    CatalogSection("Material motion scheme", "Active MaterialTheme motion scheme using its default spatial spec.") { ThemeMotionDemo() },
+    CatalogSection("Standard vs expressive", "Direct comparison of Material's standard and expressive motion schemes.") { StandardExpressiveDemo() },
     CatalogSection("Fast spatial", "Fast spatial token for compact bounds and position changes.") { SpatialSpecDemo(MotionSpeed.Fast) },
-    CatalogSection("Default spatial", "Default spatial token for common layout transitions.") { SpatialSpecDemo(MotionSpeed.Default) },
-    CatalogSection("Slow spatial", "Slow spatial token for prominent or larger layout transitions.") { SpatialSpecDemo(MotionSpeed.Slow) },
-    CatalogSection("Fast effects", "Fast effects token for alpha and color changes that must not overshoot.") { EffectsSpecDemo(MotionSpeed.Fast) },
-    CatalogSection("Default effects", "Default effects token for common non-spatial visual changes.") { EffectsSpecDemo(MotionSpeed.Default) },
-    CatalogSection("Slow effects", "Slow effects token for prominent non-spatial visual changes.") { EffectsSpecDemo(MotionSpeed.Slow) },
-    CatalogSection("Fade + scale", "Opacity and scale enter/exit transition for contextual surfaces.") { FadeScaleDemo2() },
-    CatalogSection("Shared axis X", "Horizontal shared-axis transition between related destinations.") { SharedAxisXDemo() },
-    CatalogSection("Shared axis Y", "Vertical shared-axis transition for hierarchy changes.") { SharedAxisYDemo() },
+    CatalogSection("Default spatial", "Default spatial token for common bounds and position changes.") { SpatialSpecDemo(MotionSpeed.Default) },
+    CatalogSection("Slow spatial", "Slow spatial token for prominent bounds and position changes.") { SpatialSpecDemo(MotionSpeed.Slow) },
+    CatalogSection("Fast effects", "Fast effects token for alpha and other non-spatial changes.") { EffectsSpecDemo(MotionSpeed.Fast) },
+    CatalogSection("Default effects", "Default effects token for common non-spatial changes.") { EffectsSpecDemo(MotionSpeed.Default) },
+    CatalogSection("Slow effects", "Slow effects token for prominent non-spatial changes.") { EffectsSpecDemo(MotionSpeed.Slow) },
+    CatalogSection("Fade + scale", "Combined effects and spatial enter/exit transition.") { FadeScaleDemo() },
+    CatalogSection("Shared axis X", "Related content moves along the horizontal axis with cross-fade.") { SharedAxisXDemo() },
+    CatalogSection("Shared axis Y", "Related content moves along the vertical axis with cross-fade.") { SharedAxisYDemo() },
     CatalogSection("Fade through", "Outgoing content fades before incoming content becomes dominant.") { FadeThroughDemo() },
-    CatalogSection("Container transform", "A compact surface expands while maintaining spatial continuity.") { ContainerTransformDemo2() },
-    CatalogSection("AnimatedContent SizeTransform", "Explicit staged size transform using keyframes.") { SizeTransformDemo() },
-    CatalogSection("Crossfade", "Simple layout replacement through opacity interpolation.") { CrossfadeDemo() },
-    CatalogSection("AnimatedVisibility", "Enter/exit lifecycle animation that removes hidden content from composition.") { RevealCollapseDemo2() },
-    CatalogSection("Child enter/exit", "Children define independent enter/exit motion inside a parent visibility transition.") { ChildEnterExitDemo() },
-    CatalogSection("animateContentSize", "Automatic layout size interpolation when content changes.") { AnimateContentSizeDemo() },
-    CatalogSection("animate*AsState", "Independent state-driven property animations for size, alpha and color.") { AnimateAsStateDemo() },
-    CatalogSection("updateTransition", "Coordinated multi-property animation sharing one state transition.") { UpdateTransitionDemo() },
-    CatalogSection("Spring physics", "Spring-driven spatial response with damping and stiffness.") { SpringDemo2() },
-    CatalogSection("Tween + easing", "Duration-based interpolation using an easing curve.") { TweenDemo() },
-    CatalogSection("Keyframes", "Precisely timed intermediate values within one animation.") { KeyframesDemo() },
+    CatalogSection("Container transform", "A compact surface expands while retaining spatial continuity.") { ContainerTransformDemo() },
+    CatalogSection("AnimatedContent SizeTransform", "Staged width and height interpolation with keyframes.") { SizeTransformDemo() },
+    CatalogSection("Crossfade", "Simple replacement of one layout with another through opacity.") { CrossfadeDemo() },
+    CatalogSection("AnimatedVisibility", "Lifecycle-aware appearance and disappearance.") { VisibilityDemo() },
+    CatalogSection("Nested enter/exit", "Parent and child use distinct enter and exit transitions.") { NestedEnterExitDemo() },
+    CatalogSection("animateContentSize", "Automatic interpolation when a composable changes measured size.") { ContentSizeDemo() },
+    CatalogSection("animate*AsState", "Independent state-driven size, alpha and color animations.") { AsStateDemo() },
+    CatalogSection("updateTransition", "Multiple values coordinated from a single target state.") { TransitionDemo() },
+    CatalogSection("Spring physics", "Physics-based spatial movement using damping and stiffness.") { SpringDemo() },
+    CatalogSection("Tween + easing", "Duration-based movement with easing.") { TweenDemo() },
+    CatalogSection("Keyframes", "Precisely timed intermediate values.") { KeyframesDemo() },
     CatalogSection("Repeatable", "Finite repeated animation with reverse repeat mode.") { RepeatableDemo() },
-    CatalogSection("InfiniteTransition", "Continuous coordinated animation for persistent ongoing state.") { InfiniteMotionDemo() },
-    CatalogSection("Snap", "Immediate target-state update through a snap animation spec.") { SnapDemo() },
-    CatalogSection("Animatable", "Coroutine-driven animation object for imperative and gesture-oriented motion.") { AnimatableDemo() },
-    CatalogSection("Pressed microinteraction", "A component reacts to press state with restrained scale feedback.") { PressedInteractionDemo() },
-    CatalogSection("Expandable FAB", "Extended FAB label visibility responds to a state change.") { ExpandableFabDemo() },
-    CatalogSection("Switch state motion", "Built-in component motion on a binary control.") { SwitchMotionDemo() },
-    CatalogSection("Lazy list reordering", "Placement animation when list items change order.") { ListReorderDemo() },
+    CatalogSection("InfiniteTransition", "Continuous coordinated motion for ongoing state.") { InfiniteDemo() },
+    CatalogSection("Snap", "Immediate target-state transition.") { SnapDemo() },
+    CatalogSection("Animatable", "Imperative coroutine-driven motion object.") { AnimatableDemo() },
+    CatalogSection("Pressed microinteraction", "Press-state scale feedback driven by interaction state.") { PressDemo() },
+    CatalogSection("Expandable FAB", "Built-in Extended FAB expansion and collapse motion.") { FabMotionDemo() },
+    CatalogSection("Switch state motion", "Built-in binary-control state motion.") { SwitchMotionDemo() },
+    CatalogSection("Lazy list reordering", "Placement animation when list items reorder.") { ReorderDemo() },
 )
 
 private enum class MotionSpeed { Fast, Default, Slow }
 
 @Composable
-private fun MaterialMotionSchemeDemo() {
+private fun ThemeMotionDemo() {
     var moved by remember { mutableStateOf(false) }
-    val x by animateDpAsState(
-        if (moved) 210.dp else 0.dp,
-        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
-        label = "theme-motion",
-    )
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("MaterialTheme.motionScheme · defaultSpatialSpec")
+    val spec = MaterialTheme.motionScheme.defaultSpatialSpec<androidx.compose.ui.unit.Dp>()
+    val x by animateDpAsState(if (moved) 210.dp else 0.dp, spec, label = "theme-motion")
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Button(onClick = { moved = !moved }) { Text("Animate") }
         MotionTrack(x)
     }
@@ -145,14 +132,12 @@ private fun StandardExpressiveDemo() {
     var moved by remember { mutableStateOf(false) }
     val standard = MotionScheme.standard()
     val expressive = MotionScheme.expressive()
-    val standardX by animateDpAsState(if (moved) 190.dp else 0.dp, standard.defaultSpatialSpec(), label = "standard")
-    val expressiveX by animateDpAsState(if (moved) 190.dp else 0.dp, expressive.defaultSpatialSpec(), label = "expressive")
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    val a by animateDpAsState(if (moved) 190.dp else 0.dp, standard.defaultSpatialSpec(), label = "standard")
+    val b by animateDpAsState(if (moved) 190.dp else 0.dp, expressive.defaultSpatialSpec(), label = "expressive")
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Button(onClick = { moved = !moved }) { Text("Compare") }
-        Text("Standard")
-        MotionTrack(standardX)
-        Text("Expressive")
-        MotionTrack(expressiveX)
+        Text("Standard"); MotionTrack(a)
+        Text("Expressive"); MotionTrack(b)
     }
 }
 
@@ -166,10 +151,7 @@ private fun SpatialSpecDemo(speed: MotionSpeed) {
         MotionSpeed.Slow -> scheme.slowSpatialSpec()
     }
     val x by animateDpAsState(if (moved) 210.dp else 0.dp, spec, label = "spatial-$speed")
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Button(onClick = { moved = !moved }) { Text("Replay ${speed.name.lowercase()}") }
-        MotionTrack(x)
-    }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { Button(onClick = { moved = !moved }) { Text("Replay ${speed.name.lowercase()}") }; MotionTrack(x) }
 }
 
 @Composable
@@ -181,44 +163,42 @@ private fun EffectsSpecDemo(speed: MotionSpeed) {
         MotionSpeed.Default -> scheme.defaultEffectsSpec()
         MotionSpeed.Slow -> scheme.slowEffectsSpec()
     }
-    val alpha by animateFloatAsState(if (active) 1f else 0.25f, spec, label = "effects-$speed")
+    val value by animateFloatAsState(if (active) 1f else 0.2f, spec, label = "effects-$speed")
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Button(onClick = { active = !active }) { Text("Replay ${speed.name.lowercase()}") }
-        Surface(
-            modifier = Modifier.size(88.dp).alpha(alpha),
-            shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.primaryContainer,
-        ) {}
+        Surface(modifier = Modifier.size(88.dp).alpha(value), shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.primaryContainer) {}
     }
 }
 
 @Composable
-private fun FadeScaleDemo2() {
+private fun FadeScaleDemo() {
     var visible by remember { mutableStateOf(true) }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    val scheme = MaterialTheme.motionScheme
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Button(onClick = { visible = !visible }) { Text(if (visible) "Hide" else "Show") }
         AnimatedVisibility(
             visible = visible,
-            enter = fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()) + scaleIn(MaterialTheme.motionScheme.defaultSpatialSpec(), initialScale = 0.88f),
-            exit = fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()) + scaleOut(MaterialTheme.motionScheme.fastSpatialSpec(), targetScale = 0.88f),
-        ) {
-            ElevatedCard(modifier = Modifier.fillMaxWidth()) { Text("Contextual surface", modifier = Modifier.padding(28.dp)) }
-        }
+            enter = fadeIn(scheme.defaultEffectsSpec()) + scaleIn(scheme.defaultSpatialSpec(), initialScale = 0.88f),
+            exit = fadeOut(scheme.fastEffectsSpec()) + scaleOut(scheme.fastSpatialSpec(), targetScale = 0.88f),
+        ) { ElevatedCard(modifier = Modifier.fillMaxWidth()) { Text("Contextual surface", modifier = Modifier.padding(28.dp)) } }
     }
 }
 
 @Composable
 private fun SharedAxisXDemo() {
     var page by remember { mutableIntStateOf(0) }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    val scheme = MaterialTheme.motionScheme
+    val spatial = scheme.defaultSpatialSpec<androidx.compose.ui.unit.IntOffset>()
+    val effectsIn = scheme.defaultEffectsSpec<Float>()
+    val effectsOut = scheme.fastEffectsSpec<Float>()
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         FilledTonalButton(onClick = { page = (page + 1) % 3 }) { Text("Next"); Icon(Icons.Default.ArrowForward, null) }
         AnimatedContent(
             targetState = page,
             transitionSpec = {
-                (slideInHorizontally(MaterialTheme.motionScheme.defaultSpatialSpec()) { it / 3 } + fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()))
-                    .togetherWith(slideOutHorizontally(MaterialTheme.motionScheme.defaultSpatialSpec()) { -it / 3 } + fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()))
-            },
-            label = "shared-x",
+                (slideInHorizontally(spatial) { it / 3 } + fadeIn(effectsIn))
+                    .togetherWith(slideOutHorizontally(spatial) { -it / 3 } + fadeOut(effectsOut))
+            }, label = "shared-x",
         ) { MotionStateCard("Page ${it + 1}") }
     }
 }
@@ -226,15 +206,18 @@ private fun SharedAxisXDemo() {
 @Composable
 private fun SharedAxisYDemo() {
     var page by remember { mutableIntStateOf(0) }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        FilledTonalButton(onClick = { page = (page + 1) % 3 }) { Text("Next vertical state") }
+    val scheme = MaterialTheme.motionScheme
+    val spatial = scheme.defaultSpatialSpec<androidx.compose.ui.unit.IntOffset>()
+    val effectsIn = scheme.defaultEffectsSpec<Float>()
+    val effectsOut = scheme.fastEffectsSpec<Float>()
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Button(onClick = { page = (page + 1) % 3 }) { Text("Next vertical state") }
         AnimatedContent(
             targetState = page,
             transitionSpec = {
-                (slideInVertically(MaterialTheme.motionScheme.defaultSpatialSpec()) { it / 3 } + fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()))
-                    .togetherWith(slideOutVertically(MaterialTheme.motionScheme.defaultSpatialSpec()) { -it / 3 } + fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()))
-            },
-            label = "shared-y",
+                (slideInVertically(spatial) { it / 3 } + fadeIn(effectsIn))
+                    .togetherWith(slideOutVertically(spatial) { -it / 3 } + fadeOut(effectsOut))
+            }, label = "shared-y",
         ) { MotionStateCard("Level ${it + 1}") }
     }
 }
@@ -242,33 +225,23 @@ private fun SharedAxisYDemo() {
 @Composable
 private fun FadeThroughDemo() {
     var state by remember { mutableIntStateOf(0) }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Button(onClick = { state = (state + 1) % 3 }) { Text("Change content") }
-        AnimatedContent(
-            targetState = state,
-            transitionSpec = { fadeIn(tween(220, delayMillis = 90)).togetherWith(fadeOut(tween(90))) },
-            label = "fade-through",
-        ) { MotionStateCard(listOf("Loading", "Loaded", "Updated")[it]) }
+        AnimatedContent(targetState = state, transitionSpec = { fadeIn(tween(220, delayMillis = 90)).togetherWith(fadeOut(tween(90))) }, label = "fade-through") {
+            MotionStateCard(listOf("Loading", "Loaded", "Updated")[it])
+        }
     }
 }
 
 @Composable
-private fun ContainerTransformDemo2() {
+private fun ContainerTransformDemo() {
     var expanded by remember { mutableStateOf(false) }
-    val color by animateColorAsState(
-        if (expanded) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-        MaterialTheme.motionScheme.defaultEffectsSpec(), label = "container-color",
-    )
-    Surface(
-        onClick = { expanded = !expanded },
-        modifier = Modifier.fillMaxWidth().animateContentSize(MaterialTheme.motionScheme.defaultSpatialSpec()),
-        shape = MaterialTheme.shapes.extraLarge,
-        color = color,
-    ) {
+    val scheme = MaterialTheme.motionScheme
+    val color by animateColorAsState(if (expanded) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh, scheme.defaultEffectsSpec(), label = "container-color")
+    Surface(onClick = { expanded = !expanded }, modifier = Modifier.fillMaxWidth().animateContentSize(scheme.defaultSpatialSpec()), color = color, shape = MaterialTheme.shapes.extraLarge) {
         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(if (expanded) "Expanded container" else "Compact container")
-            Text("Tap to transform")
-            if (expanded) { Spacer(Modifier.height(100.dp)); Text("Additional connected content") }
+            Text(if (expanded) "Expanded container" else "Compact container"); Text("Tap to transform")
+            if (expanded) { Spacer(Modifier.height(90.dp)); Text("Additional connected content") }
         }
     }
 }
@@ -276,23 +249,20 @@ private fun ContainerTransformDemo2() {
 @Composable
 private fun SizeTransformDemo() {
     var expanded by remember { mutableStateOf(false) }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Button(onClick = { expanded = !expanded }) { Text("Transform size") }
         AnimatedContent(
             targetState = expanded,
             transitionSpec = {
-                fadeIn(tween(150, 150)).togetherWith(fadeOut(tween(150))).using(
-                    SizeTransform { initialSize, targetSize ->
-                        keyframes {
-                            durationMillis = 300
-                            IntSize(targetSize.width, initialSize.height) at 150
-                        }
-                    },
+                ContentTransform(
+                    targetContentEnter = fadeIn(tween(150, 150)),
+                    initialContentExit = fadeOut(tween(150)),
+                    sizeTransform = SizeTransform { initialSize, targetSize -> keyframes { durationMillis = 300; IntSize(targetSize.width, initialSize.height) at 150 } },
                 )
             }, label = "size-transform",
         ) { target ->
             Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.large) {
-                Text(if (target) "Expanded content with a substantially wider text block" else "Compact", modifier = Modifier.padding(if (target) 40.dp else 16.dp))
+                Text(if (target) "Expanded content with a wider text block" else "Compact", modifier = Modifier.padding(if (target) 40.dp else 16.dp))
             }
         }
     }
@@ -301,141 +271,82 @@ private fun SizeTransformDemo() {
 @Composable
 private fun CrossfadeDemo() {
     var page by remember { mutableStateOf(false) }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    val spec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Button(onClick = { page = !page }) { Text("Crossfade") }
-        Crossfade(targetState = page, animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(), label = "crossfade") {
-            MotionStateCard(if (it) "Layout B" else "Layout A")
+        Crossfade(targetState = page, animationSpec = spec, label = "crossfade") { MotionStateCard(if (it) "Layout B" else "Layout A") }
+    }
+}
+
+@Composable
+private fun VisibilityDemo() {
+    var visible by remember { mutableStateOf(false) }
+    val scheme = MaterialTheme.motionScheme
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Button(onClick = { visible = !visible }) { Text(if (visible) "Collapse" else "Reveal") }
+        AnimatedVisibility(visible = visible, enter = expandVertically(scheme.defaultSpatialSpec()) + fadeIn(scheme.defaultEffectsSpec()), exit = shrinkVertically(scheme.fastSpatialSpec()) + fadeOut(scheme.fastEffectsSpec())) {
+            MotionStateCard("Lifecycle-aware content")
         }
     }
 }
 
 @Composable
-private fun RevealCollapseDemo2() {
+private fun NestedEnterExitDemo() {
     var visible by remember { mutableStateOf(false) }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        FilledTonalButton(onClick = { visible = !visible }) { Text(if (visible) "Collapse" else "Reveal") }
-        AnimatedVisibility(
-            visible = visible,
-            enter = expandVertically(MaterialTheme.motionScheme.defaultSpatialSpec()) + fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()),
-            exit = shrinkVertically(MaterialTheme.motionScheme.fastSpatialSpec()) + fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()),
-        ) {
-            Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surfaceContainer, shape = MaterialTheme.shapes.large) {
-                Text("Supporting information enters and exits with layout-aware motion.", modifier = Modifier.padding(20.dp))
-            }
-        }
-    }
-}
-
-@Composable
-private fun ChildEnterExitDemo() {
-    var visible by remember { mutableStateOf(false) }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Button(onClick = { visible = !visible }) { Text("Toggle parent + child") }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Button(onClick = { visible = !visible }) { Text("Toggle nested motion") }
         AnimatedVisibility(visible = visible, enter = fadeIn(), exit = fadeOut()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().animateEnterExit(
-                    enter = slideInHorizontally { -it / 2 }, exit = slideOutHorizontally { it / 2 },
-                ).padding(18.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(Icons.Default.Check, null)
-                Text("Child owns a separate enter/exit transition")
-            }
+            AnimatedVisibility(visible = visible, enter = slideInHorizontally { -it / 2 }, exit = slideOutHorizontally { it / 2 }) { MotionStateCard("Nested slide inside parent fade") }
         }
     }
 }
 
 @Composable
-private fun AnimateContentSizeDemo() {
+private fun ContentSizeDemo() {
     var expanded by remember { mutableStateOf(false) }
-    Surface(
-        onClick = { expanded = !expanded },
-        modifier = Modifier.fillMaxWidth().animateContentSize(),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shape = MaterialTheme.shapes.large,
-    ) {
-        Text(
-            if (expanded) "This content is expanded. animateContentSize smoothly reports intermediate layout sizes while the text and container reflow." else "Tap to expand",
-            modifier = Modifier.padding(20.dp),
-        )
+    Surface(onClick = { expanded = !expanded }, modifier = Modifier.fillMaxWidth().animateContentSize(), color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.large) {
+        Text(if (expanded) "Expanded text demonstrates automatic measured-size interpolation across multiple lines of content." else "Tap to expand", modifier = Modifier.padding(20.dp))
     }
 }
 
 @Composable
-private fun AnimateAsStateDemo() {
+private fun AsStateDemo() {
     var active by remember { mutableStateOf(false) }
     val size by animateDpAsState(if (active) 110.dp else 64.dp, label = "size")
-    val alpha by animateFloatAsState(if (active) 1f else 0.45f, label = "alpha")
-    val color by animateColorAsState(if (active) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer, label = "color")
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Button(onClick = { active = !active }) { Text("Animate independent values") }
-        Surface(modifier = Modifier.size(size).alpha(alpha), color = color, shape = MaterialTheme.shapes.extraLarge) {}
-    }
+    val a by animateFloatAsState(if (active) 1f else 0.45f, label = "alpha")
+    val c by animateColorAsState(if (active) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer, label = "color")
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { Button(onClick = { active = !active }) { Text("Animate values") }; Surface(modifier = Modifier.size(size).alpha(a), color = c, shape = MaterialTheme.shapes.extraLarge) {} }
 }
 
 @Composable
-private fun UpdateTransitionDemo() {
+private fun TransitionDemo() {
     var expanded by remember { mutableStateOf(false) }
+    val primary = MaterialTheme.colorScheme.primaryContainer
+    val neutral = MaterialTheme.colorScheme.surfaceContainerHighest
     val transition = updateTransition(expanded, label = "coordinated")
     val size by transition.animateDp(label = "size") { if (it) 130.dp else 70.dp }
-    val color by transition.animateColor(label = "color") { if (it) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Button(onClick = { expanded = !expanded }) { Text("Run coordinated transition") }
-        Surface(modifier = Modifier.size(size), color = color, shape = MaterialTheme.shapes.extraLarge) {}
-    }
+    val color by transition.animateColor(label = "color") { if (it) primary else neutral }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { Button(onClick = { expanded = !expanded }) { Text("Run transition") }; Surface(modifier = Modifier.size(size), color = color, shape = MaterialTheme.shapes.extraLarge) {} }
 }
 
+@Composable private fun SpringDemo() = OneDimensionalSpecDemo("Spring", spring(dampingRatio = 0.55f, stiffness = 260f))
+@Composable private fun TweenDemo() = OneDimensionalSpecDemo("Tween", tween(650, easing = FastOutSlowInEasing))
+@Composable private fun KeyframesDemo() = OneDimensionalSpecDemo("Keyframes", keyframes { durationMillis = 800; 150.dp at 220; 90.dp at 430; 210.dp at 800 })
+@Composable private fun RepeatableDemo() = OneDimensionalSpecDemo("Run 3 repeats", repeatable(iterations = 3, animation = tween(250), repeatMode = RepeatMode.Reverse))
+@Composable private fun SnapDemo() = OneDimensionalSpecDemo("Snap", snap())
+
 @Composable
-private fun SpringDemo2() {
+private fun OneDimensionalSpecDemo(label: String, spec: androidx.compose.animation.core.FiniteAnimationSpec<androidx.compose.ui.unit.Dp>) {
     var moved by remember { mutableStateOf(false) }
-    val x by animateDpAsState(if (moved) 210.dp else 0.dp, spring(dampingRatio = 0.55f, stiffness = 260f), label = "spring")
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Button(onClick = { moved = !moved }) { Text("Spring") }
-        MotionTrack(x)
-    }
+    val x by animateDpAsState(if (moved) 210.dp else 0.dp, spec, label = label)
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { Button(onClick = { moved = !moved }) { Text(label) }; MotionTrack(x) }
 }
 
 @Composable
-private fun TweenDemo() {
-    var moved by remember { mutableStateOf(false) }
-    val x by animateDpAsState(if (moved) 210.dp else 0.dp, tween(650, easing = FastOutSlowInEasing), label = "tween")
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { Button(onClick = { moved = !moved }) { Text("Tween") }; MotionTrack(x) }
-}
-
-@Composable
-private fun KeyframesDemo() {
-    var moved by remember { mutableStateOf(false) }
-    val x by animateDpAsState(
-        if (moved) 210.dp else 0.dp,
-        keyframes { durationMillis = 800; 150.dp at 220; 90.dp at 430; 210.dp at 800 },
-        label = "keyframes",
-    )
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { Button(onClick = { moved = !moved }) { Text("Keyframes") }; MotionTrack(x) }
-}
-
-@Composable
-private fun RepeatableDemo() {
-    var active by remember { mutableStateOf(false) }
-    val x by animateDpAsState(
-        if (active) 150.dp else 0.dp,
-        repeatable(iterations = 3, animation = tween(250), repeatMode = RepeatMode.Reverse),
-        label = "repeatable",
-    )
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { Button(onClick = { active = !active }) { Text("Run 3 repeats") }; MotionTrack(x) }
-}
-
-@Composable
-private fun InfiniteMotionDemo() {
+private fun InfiniteDemo() {
     val transition = rememberInfiniteTransition(label = "infinite")
     val phase by transition.animateFloat(0f, 1f, infiniteRepeatable(tween(1200, easing = LinearEasing), RepeatMode.Reverse), label = "phase")
-    MotionTrack(190.dp * phase, alpha = 0.45f + 0.55f * phase)
-}
-
-@Composable
-private fun SnapDemo() {
-    var moved by remember { mutableStateOf(false) }
-    val x by animateDpAsState(if (moved) 210.dp else 0.dp, snap(), label = "snap")
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { Button(onClick = { moved = !moved }) { Text("Snap") }; MotionTrack(x) }
+    MotionTrack(190.dp * phase, 0.45f + 0.55f * phase)
 }
 
 @Composable
@@ -449,75 +360,43 @@ private fun AnimatableDemo() {
 }
 
 @Composable
-private fun PressedInteractionDemo() {
+private fun PressDemo() {
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (pressed) 0.94f else 1f, MaterialTheme.motionScheme.fastSpatialSpec(), label = "press-scale")
-    Button(
-        onClick = {},
-        interactionSource = source,
-        modifier = Modifier.graphicsLayer { scaleX = scale; scaleY = scale },
-    ) { Text("Press and hold") }
+    val spec = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
+    val scale by animateFloatAsState(if (pressed) 0.94f else 1f, spec, label = "press")
+    Button(onClick = {}, interactionSource = source, modifier = Modifier.graphicsLayer { scaleX = scale; scaleY = scale }) { Text("Press and hold") }
 }
 
 @Composable
-private fun ExpandableFabDemo() {
+private fun FabMotionDemo() {
     var expanded by remember { mutableStateOf(true) }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Button(onClick = { expanded = !expanded }) { Text("Toggle FAB label") }
-        ExtendedFloatingActionButton(
-            text = { Text("Create") },
-            icon = { Icon(Icons.Default.Add, null) },
-            expanded = expanded,
-            onClick = {},
-        )
-    }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { Button(onClick = { expanded = !expanded }) { Text("Toggle FAB label") }; ExtendedFloatingActionButton(text = { Text("Create") }, icon = { Icon(Icons.Default.Add, null) }, expanded = expanded, onClick = {}) }
 }
 
 @Composable
 private fun SwitchMotionDemo() {
     var checked by remember { mutableStateOf(false) }
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-        Switch(checked = checked, onCheckedChange = { checked = it })
-        Text(if (checked) "On" else "Off")
-    }
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) { Switch(checked = checked, onCheckedChange = { checked = it }); Text(if (checked) "On" else "Off") }
 }
 
 @Composable
-private fun ListReorderDemo() {
-    val items = remember { mutableStateListOf("Alpha", "Beta", "Gamma", "Delta") }
+private fun ReorderDemo() {
+    val data = remember { mutableStateListOf("Alpha", "Beta", "Gamma", "Delta") }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Button(onClick = { if (items.size > 1) items.add(0, items.removeAt(items.lastIndex)) }) { Text("Reorder") }
+        Button(onClick = { if (data.size > 1) data.add(0, data.removeAt(data.lastIndex)) }) { Text("Reorder") }
         LazyColumn(modifier = Modifier.fillMaxWidth().height(210.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            items(items, key = { it }) { item ->
-                Surface(
-                    modifier = Modifier.fillMaxWidth().animateItem(),
-                    color = MaterialTheme.colorScheme.surfaceContainer,
-                    shape = MaterialTheme.shapes.medium,
-                ) { Text(item, modifier = Modifier.padding(16.dp)) }
-            }
+            items(data, key = { it }) { item -> Surface(modifier = Modifier.fillMaxWidth().animateItem(), color = MaterialTheme.colorScheme.surfaceContainer, shape = MaterialTheme.shapes.medium) { Text(item, modifier = Modifier.padding(16.dp)) } }
         }
     }
 }
 
 @Composable
 private fun MotionTrack(offset: androidx.compose.ui.unit.Dp, alpha: Float = 1f) {
-    Box(modifier = Modifier.fillMaxWidth().height(62.dp)) {
-        Surface(
-            modifier = Modifier.offset(x = offset).size(52.dp).alpha(alpha),
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.primaryContainer,
-        ) {}
-    }
+    Box(modifier = Modifier.fillMaxWidth().height(62.dp)) { Surface(modifier = Modifier.offset(x = offset).size(52.dp).alpha(alpha), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.primaryContainer) {} }
 }
 
 @Composable
 private fun MotionStateCard(label: String) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().height(120.dp),
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    ) {
-        Box(contentAlignment = Alignment.Center) { Text(label, style = MaterialTheme.typography.headlineSmall) }
-    }
+    Surface(modifier = Modifier.fillMaxWidth().height(120.dp), shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerHigh) { Box(contentAlignment = Alignment.Center) { Text(label, style = MaterialTheme.typography.headlineSmall) } }
 }
