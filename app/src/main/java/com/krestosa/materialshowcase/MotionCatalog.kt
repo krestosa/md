@@ -87,12 +87,13 @@ private fun FadeScaleDemo() {
             Icon(Icons.Default.PlayArrow, contentDescription = null)
             Text(if (visible) " Hide" else " Show")
         }
-        Box(modifier = Modifier.fillMaxWidth().height(120.dp), contentAlignment = Alignment.Center) {
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.92f),
-                exit = fadeOut(tween(160)) + scaleOut(tween(160), targetScale = 0.92f),
-            ) {
+        AnimatedVisibility(
+            visible = visible,
+            modifier = Modifier.fillMaxWidth(),
+            enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.92f),
+            exit = fadeOut(tween(160)) + scaleOut(tween(160), targetScale = 0.92f),
+        ) {
+            Box(modifier = Modifier.fillMaxWidth().height(120.dp), contentAlignment = Alignment.Center) {
                 ElevatedCard {
                     Text("Contextual surface", modifier = Modifier.padding(24.dp), style = MaterialTheme.typography.titleMedium)
                 }
