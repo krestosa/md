@@ -7,10 +7,9 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -52,7 +51,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -63,11 +61,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -78,10 +76,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalLayoutDirection
 
 @Composable
 internal fun SystemShowcaseContent(modifier: Modifier = Modifier) {
@@ -150,14 +148,15 @@ private fun AdaptiveNavigationDemo() {
 @Composable
 private fun ResponsiveLayoutDemo() {
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val availableWidth = maxWidth
         val mode = when {
-            maxWidth < 420.dp -> "Compact"
-            maxWidth < 720.dp -> "Medium"
+            availableWidth < 420.dp -> "Compact"
+            availableWidth < 720.dp -> "Medium"
             else -> "Expanded"
         }
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("$mode · ${maxWidth.value.toInt()} dp", style = MaterialTheme.typography.titleMedium)
-            if (maxWidth < 520.dp) {
+            Text("$mode · ${availableWidth.value.toInt()} dp", style = MaterialTheme.typography.titleMedium)
+            if (availableWidth < 520.dp) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { ResponsivePane("Primary"); ResponsivePane("Secondary") }
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -169,7 +168,8 @@ private fun ResponsiveLayoutDemo() {
     }
 }
 
-@Composable private fun ResponsivePane(label: String) {
+@Composable
+private fun ResponsivePane(label: String) {
     Surface(modifier = Modifier.fillMaxWidth().height(90.dp), color = MaterialTheme.colorScheme.surfaceContainer, shape = MaterialTheme.shapes.large) {
         Box(contentAlignment = Alignment.Center) { Text(label) }
     }
@@ -277,7 +277,7 @@ private fun AccessibilityDemo() {
 
 @Composable
 private fun RtlDemo() {
-    androidx.compose.runtime.CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surfaceContainer, shape = MaterialTheme.shapes.large) {
             Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.ArrowBack, contentDescription = null)
