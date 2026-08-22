@@ -34,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun ExperimentalCatalogContent(
@@ -62,7 +61,7 @@ private fun experimentalSections(onSnackbar: (String) -> Unit): List<CatalogSect
     CatalogSection("Alpha short navigation bar", "Compact primary destination navigation introduced in the 1.5 prerelease line.") {
         AlphaShortNavigationBarDemo()
     },
-)
+) + moreLabsSections()
 
 @Composable
 private fun ChannelStatusDemo() {
