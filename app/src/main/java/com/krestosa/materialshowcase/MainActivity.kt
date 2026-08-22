@@ -72,9 +72,9 @@ class MainActivity : ComponentActivity() {
 internal data class CatalogSection(
     val title: String,
     val description: String,
-    val content: @Composable () -> Unit,
     val documentationUrl: String = documentationUrlFor(title),
     val animationUrl: String = animationUrlFor(title),
+    val content: @Composable () -> Unit,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
