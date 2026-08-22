@@ -1,0 +1,1 @@
+Second validation after restoring CatalogSection trailing-lambda compatibility and responsive width handling.
