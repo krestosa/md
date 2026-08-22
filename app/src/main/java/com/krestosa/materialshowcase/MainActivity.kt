@@ -15,14 +15,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -83,25 +81,31 @@ fun MaterialShowcaseApp() {
     var menuExpanded by remember { mutableStateOf(false) }
     var selectedDestination by remember { mutableIntStateOf(0) }
 
-    MaterialTheme {
+    ShowcaseTheme {
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Material Components", fontWeight = FontWeight.SemiBold)
-                            Text("Interactive showcase", style = MaterialTheme.typography.labelSmall)
+                            Text(
+                                if (selectedDestination == 0) "Material Components" else "Material Labs",
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                if (selectedDestination == 0) "Stable component catalog" else "Experimental · Alpha · Beta",
+                                style = MaterialTheme.typography.labelSmall,
+                            )
                         }
                     },
                     navigationIcon = {
-                        IconButton(onClick = { scope.launch { snackbarHostState.showSnackbar("Navigation icon") } }) {
+                        IconButton(onClick = { scope.launch { snackbarHostState.showSnackbar("Navigation") } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
                     },
                     actions = {
-                        BadgedBox(badge = { Badge { Text("3") } }) {
-                            IconButton(onClick = { scope.launch { snackbarHostState.showSnackbar("Notifications") } }) {
-                                Icon(Icons.Default.Notifications, contentDescription = "Notifications")
+                        BadgedBox(badge = { Badge { Text(if (selectedDestination == 0) "S" else "α") } }) {
+                            IconButton(onClick = { scope.launch { snackbarHostState.showSnackbar("Catalog status") } }) {
+                                Icon(Icons.Default.Notifications, contentDescription = "Status")
                             }
                         }
                         androidx.compose.foundation.layout.Box {
@@ -117,14 +121,6 @@ fun MaterialShowcaseApp() {
                                         showDialog = true
                                     },
                                 )
-                                DropdownMenuItem(
-                                    text = { Text("Settings") },
-                                    leadingIcon = { Icon(Icons.Default.Settings, null) },
-                                    onClick = {
-                                        menuExpanded = false
-                                        scope.launch { snackbarHostState.showSnackbar("Settings") }
-                                    },
-                                )
                             }
                         }
                     },
@@ -133,41 +129,43 @@ fun MaterialShowcaseApp() {
             snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = {
                 NavigationBar {
-                    val destinations = listOf(
-                        Triple("Catalog", Icons.Default.Home, "Catalog"),
-                        Triple("Favorites", Icons.Default.Favorite, "Favorites"),
-                        Triple("Profile", Icons.Default.Person, "Profile"),
+                    NavigationBarItem(
+                        selected = selectedDestination == 0,
+                        onClick = { selectedDestination = 0 },
+                        icon = { Icon(Icons.Default.ViewModule, contentDescription = "Stable") },
+                        label = { Text("Stable") },
                     )
-                    destinations.forEachIndexed { index, destination ->
-                        NavigationBarItem(
-                            selected = selectedDestination == index,
-                            onClick = {
-                                selectedDestination = index
-                                if (index != 0) scope.launch { snackbarHostState.showSnackbar("${destination.first} demo") }
-                            },
-                            icon = { Icon(destination.second, contentDescription = destination.third) },
-                            label = { Text(destination.first) },
-                        )
-                    }
+                    NavigationBarItem(
+                        selected = selectedDestination == 1,
+                        onClick = { selectedDestination = 1 },
+                        icon = { Icon(Icons.Default.Science, contentDescription = "Labs") },
+                        label = { Text("Labs") },
+                    )
                 }
             },
         ) { innerPadding ->
-            CatalogContent(
-                modifier = Modifier.padding(innerPadding),
-                onDialog = { showDialog = true },
-                onSheet = { showSheet = true },
-                onSnackbar = { message -> scope.launch { snackbarHostState.showSnackbar(message) } },
-            )
+            if (selectedDestination == 0) {
+                CatalogContent(
+                    modifier = Modifier.padding(innerPadding),
+                    onDialog = { showDialog = true },
+                    onSheet = { showSheet = true },
+                    onSnackbar = { message -> scope.launch { snackbarHostState.showSnackbar(message) } },
+                )
+            } else {
+                ExperimentalCatalogContent(
+                    modifier = Modifier.padding(innerPadding),
+                    onSnackbar = { message -> scope.launch { snackbarHostState.showSnackbar(message) } },
+                )
+            }
         }
 
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
                 icon = { Icon(Icons.Default.Info, null) },
-                title = { Text("Alert dialog") },
-                text = { Text("Dialogs interrupt the current task to communicate information or request a decision.") },
-                confirmButton = { TextButton(onClick = { showDialog = false }) { Text("Confirm") } },
-                dismissButton = { TextButton(onClick = { showDialog = false }) { Text("Cancel") } },
+                title = { Text("About this catalog") },
+                text = { Text("Stable components and prerelease APIs are separated into independent catalog surfaces. Colors and light/dark appearance follow the device system theme.") },
+                confirmButton = { TextButton(onClick = { showDialog = false }) { Text("OK") } },
             )
         }
 
@@ -201,18 +199,30 @@ private fun CatalogContent(
 ) {
     val sections = coreCatalogSections(onDialog, onSheet, onSnackbar) + extendedCatalogSections(onSnackbar)
 
+    CatalogSectionList(
+        modifier = modifier,
+        title = "Stable components",
+        description = "Production-oriented Material component catalog. The app follows system light/dark mode and dynamic device colors when Android supports them.",
+        sections = sections,
+    )
+}
+
+@Composable
+internal fun CatalogSectionList(
+    modifier: Modifier = Modifier,
+    title: String,
+    description: String,
+    sections: List<CatalogSection>,
+) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            Text("Component catalog", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+            Text(title, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
-            Text(
-                "A functional reference surface for Material components, states, hierarchy and interaction patterns.",
-                style = MaterialTheme.typography.bodyLarge,
-            )
+            Text(description, style = MaterialTheme.typography.bodyLarge)
         }
         items(sections, key = { it.title }) { section ->
             ComponentSection(section)
